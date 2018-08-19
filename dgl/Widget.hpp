@@ -307,7 +307,11 @@ public:
    /**
       Tell this widget's window to repaint itself.
     */
+#if !defined(HAVE_DGL_BUFFERING)
     void repaint() noexcept;
+#else
+    virtual void repaint() noexcept;
+#endif
 
    /**
       Get the Id associated with this widget.

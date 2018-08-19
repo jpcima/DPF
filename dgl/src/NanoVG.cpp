@@ -14,6 +14,14 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#if defined(HAVE_DGL_BUFFERING)
+#define NANOVG_GLEW 1
+#endif
+
+#if defined(NANOVG_GLEW)
+#include <GL/glew.h>
+#endif
+
 #include "../NanoVG.hpp"
 #include "WidgetPrivateData.hpp"
 
@@ -23,6 +31,7 @@
 
 // -----------------------------------------------------------------------
 
+#if !defined(NANOVG_GLEW)
 #if defined(DISTRHO_OS_WINDOWS)
 # include <windows.h>
 # define DGL_EXT(PROC, func) static PROC func;
@@ -55,6 +64,7 @@ DGL_EXT(PFNGLUSEPROGRAMPROC,               glUseProgram)
 DGL_EXT(PFNGLVERTEXATTRIBPOINTERPROC,      glVertexAttribPointer)
 # undef DGL_EXT
 #endif
+#endif
 
 // -----------------------------------------------------------------------
 // Include NanoVG OpenGL implementation
@@ -62,6 +72,7 @@ DGL_EXT(PFNGLVERTEXATTRIBPOINTERPROC,      glVertexAttribPointer)
 //#define STB_IMAGE_STATIC
 #define NANOVG_GL2_IMPLEMENTATION
 #include "nanovg/nanovg_gl.h"
+#include "nanovg/nanovg_gl_utils.h"
 
 #if defined(NANOVG_GL2)
 # define nvgCreateGL nvgCreateGL2
@@ -79,7 +90,9 @@ DGL_EXT(PFNGLVERTEXATTRIBPOINTERPROC,      glVertexAttribPointer)
 
 static NVGcontext* nvgCreateGL_helper(int flags)
 {
-#if defined(DISTRHO_OS_WINDOWS)
+#if defined(NANOVG_GLEW)
+    glewInit();
+#elif defined(DISTRHO_OS_WINDOWS)
     static bool needsInit = true;
     if (needsInit)
     {
@@ -915,14 +928,29 @@ void NanoVG::loadSharedResources()
 struct NanoWidget::PrivateData {
     NanoWidget* const self;
     std::vector<NanoWidget*> subWidgets;
+#ifdef HAVE_DGL_BUFFERING
+    bool usesFbo;
+    NVGLUframebuffer *fbo;
+    bool fboDirty;
+#endif
 
     PrivateData(NanoWidget* const s)
         : self(s),
-          subWidgets() {}
+          subWidgets()
+#ifdef HAVE_DGL_BUFFERING
+          ,
+          usesFbo(false),
+          fbo(nullptr),
+          fboDirty(true)
+#endif
+    {}
 
     ~PrivateData()
     {
         subWidgets.clear();
+#ifdef HAVE_DGL_BUFFERING
+        nvgluDeleteFramebuffer(self->getContext(), fbo);
+#endif
     }
 };
 
@@ -957,19 +985,133 @@ NanoWidget::~NanoWidget()
     delete nData;
 }
 
+#ifdef HAVE_DGL_BUFFERING
+void NanoWidget::setDrawingBuffered(bool buffered)
+{
+    if (nData->usesFbo != buffered) {
+        nData->usesFbo = buffered;
+        nData->fboDirty = true;
+    }
+}
+
+void NanoWidget::repaint() noexcept
+{
+    nData->fboDirty = true;
+    Widget::repaint();
+}
+#endif
+
 void NanoWidget::onDisplay()
 {
-    NanoVG::beginFrame(getWidth(), getHeight());
-    onNanoDisplay();
+    const std::vector<NanoWidget*>& subWidgets = nData->subWidgets;
 
-    for (std::vector<NanoWidget*>::iterator it = nData->subWidgets.begin(); it != nData->subWidgets.end(); ++it)
-    {
-        NanoWidget* const widget(*it);
-        widget->onNanoDisplay();
+#ifdef HAVE_DGL_BUFFERING
+    for (size_t i = 0, n = subWidgets.size(); i <= n; ++i) {
+        NanoWidget* const widget = (i == 0) ? this : subWidgets[i - 1];
+        if (widget->nData->usesFbo)
+            widget->renderToBuffer();
+        else {
+            nvgluDeleteFramebuffer(getContext(), widget->nData->fbo);
+            widget->nData->fbo = nullptr;
+        }
+    }
+#endif
+
+    NanoVG::beginFrame(getWidth(), getHeight());
+
+    for (size_t i = 0, n = subWidgets.size(); i <= n; ++i) {
+        NanoWidget* const widget = (i == 0) ? this : subWidgets[i - 1];
+#ifdef HAVE_DGL_BUFFERING
+        if (widget->nData->fbo)
+            widget->displayBuffer();
+        else
+#endif
+            widget->onNanoDisplay();
     }
 
     NanoVG::endFrame();
 }
+
+#ifdef HAVE_DGL_BUFFERING
+void NanoWidget::renderToBuffer()
+{
+    int fboWidth = getWidth();
+    int fboHeight = getHeight();
+    bool dirty = nData->fboDirty;
+
+    NVGLUframebuffer *fb = nData->fbo;
+    if (fb) {
+        int currentWidth, currentHeight;
+        nvgImageSize(getContext(), fb->image, &currentWidth, &currentHeight);
+        if (fboWidth != currentWidth || fboHeight != currentHeight) {
+            nvgluDeleteFramebuffer(getContext(), fb);
+            fb = nullptr;
+        }
+    }
+
+    if (!fb) {
+        fb = nvgluCreateFramebuffer(getContext(), fboWidth, fboHeight, 0);
+        dirty = true;
+        nData->fbo = fb;
+    }
+
+    if (!fb) {
+        nData->usesFbo = false;
+        return;
+    }
+
+    if (!dirty)
+        return;
+
+    glPushMatrix();
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    nvgluBindFramebuffer(fb);
+
+    // glViewport(0, 0, fboWidth, fboHeight);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0, static_cast<GLdouble>(fboWidth), static_cast<GLdouble>(fboHeight), 0.0, 0.0, 1.0);
+    glViewport(0, 0, static_cast<GLsizei>(fboWidth), static_cast<GLsizei>(fboHeight));
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+
+    beginFrame(fboWidth, fboHeight);
+
+#warning TODO is this right?
+    Point<int> pos = getAbsolutePos();
+    glTranslatef((float)-pos.getX(), (float)-pos.getY(), 0);
+
+    onNanoDisplay();
+
+    endFrame();
+
+    glPopAttrib();
+    glPopMatrix();
+    nvgluBindFramebuffer(NULL);
+
+    nData->fboDirty = false;
+}
+
+void NanoWidget::displayBuffer()
+{
+    int widgetWidth = getWidth();
+    int widgetHeight = getHeight();
+    NVGLUframebuffer *fb = nData->fbo;
+    int fboWidth, fboHeight;
+    nvgImageSize(getContext(), fb->image, &fboWidth, &fboHeight);
+    NVGpaint img = nvgImagePattern(getContext(), 0, 0, fboWidth, fboHeight, 0, fb->image, 1);
+    save();
+    beginPath();
+    rect(getAbsoluteX(), getAbsoluteY(), widgetWidth, widgetHeight);
+    nvgFillPaint(getContext(), img);
+    fill();
+    restore();
+}
+#endif
 
 // -----------------------------------------------------------------------
 

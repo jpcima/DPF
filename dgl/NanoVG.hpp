@@ -897,6 +897,18 @@ public:
     */
     virtual ~NanoWidget();
 
+#ifdef HAVE_DGL_BUFFERING
+   /**
+      Sets whether to cache the rendering of the widget.
+    */
+    void setDrawingBuffered(bool buffered);
+
+   /**
+      Tell this widget's window to repaint itself.
+    */
+    void repaint() noexcept override;
+#endif
+
 protected:
    /**
       New virtual onDisplay function.
@@ -913,6 +925,11 @@ private:
       Implemented internally to wrap begin/endFrame() automatically.
     */
     void onDisplay() override;
+
+#ifdef HAVE_DGL_BUFFERING
+    void renderToBuffer();
+    void displayBuffer();
+#endif
 
     // these should not be used
     void beginFrame(uint,uint) {}

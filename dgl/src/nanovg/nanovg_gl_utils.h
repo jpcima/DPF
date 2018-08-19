@@ -36,7 +36,9 @@ void nvgluDeleteFramebuffer(NVGcontext* ctx, NVGLUframebuffer* fb);
 
 #ifdef NANOVG_GL_IMPLEMENTATION
 
-#if defined(NANOVG_GL3) || defined(NANOVG_GLES2) || defined(NANOVG_GLES3)
+#if defined(NANOVG_GLEW)
+#	define NANOVG_FBO_VALID 1
+#elif defined(NANOVG_GL3) || defined(NANOVG_GLES2) || defined(NANOVG_GLES3)
 // FBO is core in OpenGL 3>.
 #	define NANOVG_FBO_VALID 1
 #elif defined(NANOVG_GL2)
@@ -52,6 +54,12 @@ static GLint defaultFBO = -1;
 NVGLUframebuffer* nvgluCreateFramebuffer(NVGcontext* ctx, int w, int h, int imageFlags)
 {
 #ifdef NANOVG_FBO_VALID
+
+#if defined(NANOVG_GLEW)
+	if (!GL_ARB_framebuffer_object)
+		return NULL;
+#endif
+
 	GLint defaultFBO;
 	GLint defaultRBO;
 	NVGLUframebuffer* fb = NULL;
