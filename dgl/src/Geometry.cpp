@@ -20,7 +20,9 @@
 
 START_NAMESPACE_DGL
 
+#ifdef DGL_OPENGL
 static const float M_2PIf = 3.14159265358979323846f*2.0f;
+#endif
 
 // -----------------------------------------------------------------------
 // Point
@@ -479,32 +481,48 @@ bool Line<T>::operator!=(const Line<T>& line) const noexcept
 template<typename T>
 Circle<T>::Circle() noexcept
     : fPos(0, 0),
-      fSize(0.0f),
-      fNumSegments(0),
+      fSize(0.0f)
+#ifdef DGL_OPENGL
+    , fNumSegments(0),
       fTheta(0.0f),
       fCos(0.0f),
-      fSin(0.0f) {}
+      fSin(0.0f)
+#endif
+{
+}
 
 template<typename T>
+#ifdef DGL_OPENGL
 Circle<T>::Circle(const T& x, const T& y, const float size, const uint numSegments)
+#else
+Circle<T>::Circle(const T& x, const T& y, const float size)
+#endif
     : fPos(x, y),
-      fSize(size),
-      fNumSegments(numSegments >= 3 ? numSegments : 3),
+      fSize(size)
+#ifdef DGL_OPENGL
+    , fNumSegments(numSegments >= 3 ? numSegments : 3),
       fTheta(M_2PIf / static_cast<float>(fNumSegments)),
       fCos(std::cos(fTheta)),
       fSin(std::sin(fTheta))
+#endif
 {
     DISTRHO_SAFE_ASSERT(fSize > 0.0f);
 }
 
 template<typename T>
+#ifdef DGL_OPENGL
 Circle<T>::Circle(const Point<T>& pos, const float size, const uint numSegments)
+#else
+Circle<T>::Circle(const Point<T>& pos, const float size)
+#endif
     : fPos(pos),
-      fSize(size),
-      fNumSegments(numSegments >= 3 ? numSegments : 3),
+      fSize(size)
+#ifdef DGL_OPENGL
+    , fNumSegments(numSegments >= 3 ? numSegments : 3),
       fTheta(M_2PIf / static_cast<float>(fNumSegments)),
       fCos(std::cos(fTheta)),
       fSin(std::sin(fTheta))
+#endif
 {
     DISTRHO_SAFE_ASSERT(fSize > 0.0f);
 }
@@ -512,11 +530,13 @@ Circle<T>::Circle(const Point<T>& pos, const float size, const uint numSegments)
 template<typename T>
 Circle<T>::Circle(const Circle<T>& cir) noexcept
     : fPos(cir.fPos),
-      fSize(cir.fSize),
-      fNumSegments(cir.fNumSegments),
+      fSize(cir.fSize)
+#ifdef DGL_OPENGL
+    , fNumSegments(cir.fNumSegments),
       fTheta(cir.fTheta),
       fCos(cir.fCos),
       fSin(cir.fSin)
+#endif
 {
     DISTRHO_SAFE_ASSERT(fSize > 0.0f);
 }
@@ -578,6 +598,7 @@ void Circle<T>::setSize(const float size) noexcept
     fSize = size;
 }
 
+#ifdef DGL_OPENGL
 template<typename T>
 uint Circle<T>::getNumSegments() const noexcept
 {
@@ -598,17 +619,18 @@ void Circle<T>::setNumSegments(const uint num)
     fCos = std::cos(fTheta);
     fSin = std::sin(fTheta);
 }
+#endif
 
 template<typename T>
-void Circle<T>::draw()
+void Circle<T>::draw(const GraphicsContext* context)
 {
-    _draw(false);
+    _draw(context, false);
 }
 
 template<typename T>
-void Circle<T>::drawOutline()
+void Circle<T>::drawOutline(const GraphicsContext* context)
 {
-    _draw(true);
+    _draw(context, true);
 }
 
 template<typename T>
@@ -616,23 +638,35 @@ Circle<T>& Circle<T>::operator=(const Circle<T>& cir) noexcept
 {
     fPos   = cir.fPos;
     fSize  = cir.fSize;
+#ifdef DGL_OPENGL
     fTheta = cir.fTheta;
     fCos   = cir.fCos;
     fSin   = cir.fSin;
     fNumSegments = cir.fNumSegments;
+#endif
     return *this;
 }
 
 template<typename T>
 bool Circle<T>::operator==(const Circle<T>& cir) const noexcept
 {
-    return (fPos == cir.fPos && d_isEqual(fSize, cir.fSize) && fNumSegments == cir.fNumSegments);
+#ifdef DGL_OPENGL
+    if (fNumSegments != cir.fNumSegments)
+        return false;
+#endif
+
+    return (fPos == cir.fPos && d_isEqual(fSize, cir.fSize));
 }
 
 template<typename T>
 bool Circle<T>::operator!=(const Circle<T>& cir) const noexcept
 {
-    return (fPos != cir.fPos || d_isNotEqual(fSize, cir.fSize) || fNumSegments != cir.fNumSegments);
+#ifdef DGL_OPENGL
+    if (fNumSegments != cir.fNumSegments)
+        return true;
+#endif
+
+    return (fPos != cir.fPos || d_isNotEqual(fSize, cir.fSize));
 }
 
 // -----------------------------------------------------------------------
@@ -687,15 +721,15 @@ bool Triangle<T>::isInvalid() const noexcept
 }
 
 template<typename T>
-void Triangle<T>::draw()
+void Triangle<T>::draw(const GraphicsContext* context)
 {
-    _draw(false);
+    _draw(context, false);
 }
 
 template<typename T>
-void Triangle<T>::drawOutline()
+void Triangle<T>::drawOutline(const GraphicsContext* context)
 {
-    _draw(true);
+    _draw(context, true);
 }
 
 template<typename T>
@@ -901,15 +935,15 @@ bool Rectangle<T>::containsY(const T& y) const noexcept
 }
 
 template<typename T>
-void Rectangle<T>::draw()
+void Rectangle<T>::draw(const GraphicsContext* context)
 {
-    _draw(false);
+    _draw(context, false);
 }
 
 template<typename T>
-void Rectangle<T>::drawOutline()
+void Rectangle<T>::drawOutline(const GraphicsContext* context)
 {
-    _draw(true);
+    _draw(context, true);
 }
 
 template<typename T>

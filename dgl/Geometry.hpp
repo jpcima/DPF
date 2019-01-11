@@ -347,9 +347,13 @@ public:
     void moveBy(const Point<T>& pos) noexcept;
 
    /**
-      Draw this line using the current OpenGL state.
+      Draw this line using the given graphics context.
     */
-    void draw();
+#ifdef DGL_OPENGL
+    void draw(const GraphicsContext* context = nullptr);
+#else
+    void draw(const GraphicsContext* context);
+#endif
 
    /**
       Return true if line is null (start and end pos are equal).
@@ -391,12 +395,20 @@ public:
    /**
       Constructor using custom X, Y and size values.
     */
+#ifdef DGL_OPENGL
     Circle(const T& x, const T& y, const float size, const uint numSegments = 300);
+#else
+    Circle(const T& x, const T& y, const float size);
+#endif
 
    /**
       Constructor using custom position and size values.
     */
+#ifdef DGL_OPENGL
     Circle(const Point<T>& pos, const float size, const uint numSegments = 300);
+#else
+    Circle(const Point<T>& pos, const float size);
+#endif
 
    /**
       Constructor using another Circle class values.
@@ -449,6 +461,7 @@ public:
     */
     void setSize(const float size) noexcept;
 
+#ifdef DGL_OPENGL
    /**
       Get the current number of line segments that make this circle.
     */
@@ -459,16 +472,25 @@ public:
       @note Must always be >= 3
     */
     void setNumSegments(const uint num);
+#endif
 
    /**
-      Draw this circle using the current OpenGL state.
+      Draw this circle using the given graphics context.
     */
-    void draw();
+#ifdef DGL_OPENGL
+    void draw(const GraphicsContext* context = nullptr);
+#else
+    void draw(const GraphicsContext* context);
+#endif
 
    /**
-      Draw lines (outline of this circle) using the current OpenGL state.
+      Draw lines (outline of this circle) using the given graphics context.
     */
-    void drawOutline();
+#ifdef DGL_OPENGL
+    void drawOutline(const GraphicsContext* context = nullptr);
+#else
+    void drawOutline(const GraphicsContext* context);
+#endif
 
     Circle<T>& operator=(const Circle<T>& cir) noexcept;
     bool operator==(const Circle<T>& cir) const noexcept;
@@ -477,13 +499,16 @@ public:
 private:
     Point<T> fPos;
     float    fSize;
+
+#ifdef DGL_OPENGL
     uint     fNumSegments;
 
     // cached values
     float fTheta, fCos, fSin;
+#endif
 
    /** @internal */
-    void _draw(const bool outline);
+    void _draw(const GraphicsContext* context, const bool outline);
 };
 
 // -----------------------------------------------------------------------
@@ -541,14 +566,22 @@ public:
     bool isInvalid() const noexcept;
 
    /**
-      Draw this triangle using the current OpenGL state.
+      Draw this triangle using the given graphics context.
     */
-    void draw();
+#ifdef DGL_OPENGL
+    void draw(const GraphicsContext* context = nullptr);
+#else
+    void draw(const GraphicsContext* context);
+#endif
 
    /**
-      Draw lines (outline of this triangle) using the current OpenGL state.
+      Draw lines (outline of this triangle) using the given graphics context.
     */
-    void drawOutline();
+#ifdef DGL_OPENGL
+    void drawOutline(const GraphicsContext* context = nullptr);
+#else
+    void drawOutline(const GraphicsContext* context);
+#endif
 
     Triangle<T>& operator=(const Triangle<T>& tri) noexcept;
     bool operator==(const Triangle<T>& tri) const noexcept;
@@ -558,7 +591,7 @@ private:
     Point<T> fPos1, fPos2, fPos3;
 
    /** @internal */
-    void _draw(const bool outline);
+    void _draw(const GraphicsContext* context, const bool outline);
 };
 
 // -----------------------------------------------------------------------
@@ -723,14 +756,22 @@ public:
     bool containsY(const T& y) const noexcept;
 
    /**
-      Draw this rectangle using the current OpenGL state.
+      Draw this rectangle using the given graphics context.
     */
-    void draw();
+#ifdef DGL_OPENGL
+    void draw(const GraphicsContext* context = nullptr);
+#else
+    void draw(const GraphicsContext* context);
+#endif
 
    /**
-      Draw lines (outline of this rectangle) using the current OpenGL state.
+      Draw lines (outline of this rectangle) using the given graphics context.
     */
-    void drawOutline();
+#ifdef DGL_OPENGL
+    void drawOutline(const GraphicsContext* context = nullptr);
+#else
+    void drawOutline(const GraphicsContext* context);
+#endif
 
     Rectangle<T>& operator=(const Rectangle<T>& rect) noexcept;
     Rectangle<T>& operator*=(double m) noexcept;
@@ -743,7 +784,7 @@ private:
     Size<T>  fSize;
 
    /** @internal */
-    void _draw(const bool outline);
+    void _draw(const GraphicsContext* context, const bool outline);
 };
 
 // -----------------------------------------------------------------------

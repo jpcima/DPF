@@ -23,7 +23,7 @@ START_NAMESPACE_DGL
 // Line
 
 template<typename T>
-void Line<T>::draw()
+void Line<T>::draw(const GraphicsContext* context)
 {
     DISTRHO_SAFE_ASSERT_RETURN(fPosStart != fPosEnd,);
 
@@ -35,13 +35,16 @@ void Line<T>::draw()
     }
 
     glEnd();
+
+    // unused
+    (void)context;
 }
 
 // -----------------------------------------------------------------------
 // Circle
 
 template<typename T>
-void Circle<T>::_draw(const bool outline)
+void Circle<T>::_draw(const GraphicsContext* context, const bool outline)
 {
     DISTRHO_SAFE_ASSERT_RETURN(fNumSegments >= 3 && fSize > 0.0f,);
 
@@ -59,13 +62,16 @@ void Circle<T>::_draw(const bool outline)
     }
 
     glEnd();
+
+    // unused
+    (void)context;
 }
 
 // -----------------------------------------------------------------------
 // Triangle
 
 template<typename T>
-void Triangle<T>::_draw(const bool outline)
+void Triangle<T>::_draw(const GraphicsContext* context, const bool outline)
 {
     DISTRHO_SAFE_ASSERT_RETURN(fPos1 != fPos2 && fPos1 != fPos3,);
 
@@ -78,13 +84,16 @@ void Triangle<T>::_draw(const bool outline)
     }
 
     glEnd();
+
+    // unused
+    (void)context;
 }
 
 // -----------------------------------------------------------------------
 // Rectangle
 
 template<typename T>
-void Rectangle<T>::_draw(const bool outline)
+void Rectangle<T>::_draw(const GraphicsContext* context, const bool outline)
 {
     DISTRHO_SAFE_ASSERT_RETURN(fSize.isValid(),);
 
@@ -105,6 +114,9 @@ void Rectangle<T>::_draw(const bool outline)
     }
 
     glEnd();
+
+    // unused
+    (void)context;
 }
 
 // -----------------------------------------------------------------------
