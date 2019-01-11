@@ -46,10 +46,37 @@ public:
 
     void onDisplay()
     {
-        cairo_t* cr = getParentWindow().getGraphicsContext().cairo;
+        const GraphicsContext& gc = getParentWindow().getGraphicsContext();
+        cairo_t* cr = gc.cairo;
 
         cairo_set_source_rgb(cr, 1.0, 0.8, 0.5);
         cairo_paint(cr);
+
+        cairo_set_source_rgb(cr, 0.0, 0.8, 0.5);
+
+        Point<int> tp1(50, 100);
+        Point<int> tp2 = tp1 + Point<int>(20, 40);
+        Point<int> tp3 = tp1 + Point<int>(-20, 40);
+
+        Triangle<int>(tp1, tp2, tp3).draw(&gc);
+
+        tp1 += Point<int>(0, 20);
+        tp2 += Point<int>(5, 20);
+        tp3 += Point<int>(-5, 20);
+
+        Triangle<int>(tp1, tp2, tp3).draw(&gc);
+
+        tp1 += Point<int>(0, 20);
+        tp2 += Point<int>(5, 20);
+        tp3 += Point<int>(-5, 20);
+
+        Triangle<int>(tp1, tp2, tp3).draw(&gc);
+
+        cairo_set_source_rgb(cr, 0.8, 0.5, 0.0);
+
+        tp1 += Point<int>(-5, 40);
+
+        Rectangle<int>(tp1, 10, 10).draw(&gc);
     }
 
     void parameterChanged(uint32_t index, float value)
