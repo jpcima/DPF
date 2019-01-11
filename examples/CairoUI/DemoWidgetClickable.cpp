@@ -26,7 +26,8 @@ DemoWidgetClickable::DemoWidgetClickable(Widget* group)
 
 void DemoWidgetClickable::onDisplay()
 {
-    cairo_t* cr = getParentWindow().getGraphicsContext().cairo;
+    const GraphicsContext& gc = getParentWindow().getGraphicsContext();
+    cairo_t* cr = gc.cairo;
 
     Point<int> pt = getAbsolutePos();
     Size<uint> sz = getSize();
@@ -48,18 +49,18 @@ void DemoWidgetClickable::onDisplay()
         cairo_set_source_rgb(cr, 0.0, 0.0, 0.75);
         break;
     }
-    cairo_rectangle(cr, x, y, w, h);
-    cairo_fill(cr);
+
+    Rectangle<int> bounds(x, y, w, h);
+    bounds.draw(&gc);
 
     cairo_set_source_rgb(cr, 0.9, 0.9, 0.9);
-    cairo_new_path(cr);
-    cairo_move_to(cr, x + 0.25 * w, y + 0.25 * h);
-    cairo_line_to(cr, x + 0.75 * w, y + 0.75 * h);
-    cairo_stroke(cr);
-    cairo_new_path(cr);
-    cairo_move_to(cr, x + 0.75 * w, y + 0.25 * h);
-    cairo_line_to(cr, x + 0.25 * w, y + 0.75 * h);
-    cairo_stroke(cr);
+
+    Line<float> line1(x + 0.25 * w, y + 0.25 * h,
+                      x + 0.75 * w, y + 0.75 * h);
+    Line<float> line2(x + 0.75 * w, y + 0.25 * h,
+                      x + 0.25 * w, y + 0.75 * h);
+    line1.draw(&gc);
+    line2.draw(&gc);
 }
 
 bool DemoWidgetClickable::onMouse(const MouseEvent& event)

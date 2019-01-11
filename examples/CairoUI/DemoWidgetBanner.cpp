@@ -57,7 +57,8 @@ DemoWidgetBanner::DemoWidgetBanner(Widget* group)
 
 void DemoWidgetBanner::onDisplay()
 {
-    cairo_t* cr = getParentWindow().getGraphicsContext().cairo;
+    const GraphicsContext& gc = getParentWindow().getGraphicsContext();
+    cairo_t* cr = gc.cairo;
 
     Point<int> pt = getAbsolutePos();
     Size<uint> sz = getSize();
@@ -75,8 +76,9 @@ void DemoWidgetBanner::onDisplay()
     {
         for (int c = 0; c < columns; ++c)
         {
-            double cx = x + xoff + radius + c * diameter;
-            double cy = y + yoff + radius + r * diameter;
+            Circle<float> dot(x + xoff + c * diameter,
+                              y + yoff + r * diameter,
+                              radius);
 
             char ch = banner[c + r * columns];
             if (ch != ' ')
@@ -84,13 +86,7 @@ void DemoWidgetBanner::onDisplay()
             else
                 cairo_set_source_rgb(cr, 0.5, 0.5, 0.5);
 
-            cairo_save(cr);
-            cairo_translate(cr, cx, cy);
-            cairo_scale(cr, radius, radius);
-            cairo_arc(cr, 0.0, 0.0, 1.0, 0.0, 2 * M_PI);
-            cairo_restore(cr);
-
-            cairo_fill(cr);
+            dot.draw(&gc);
         }
     }
 }
