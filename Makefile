@@ -30,9 +30,9 @@ ifneq ($(MACOS_OR_WINDOWS),true)
 	$(MAKE) all -C examples/ExternalUI
 	install -d bin/d_extui-dssi
 	install -d bin/d_extui.lv2
-	install -m 755 examples/ExternalUI/ExternalLauncher.sh bin/d_extui.sh
-	install -m 755 examples/ExternalUI/ExternalLauncher.sh bin/d_extui-dssi/d_extui.sh
-	install -m 755 examples/ExternalUI/ExternalLauncher.sh bin/d_extui.lv2/d_extui.sh
+	install -m 755 examples/ExternalUI/ExternalLauncher.tcl bin/d_extui.tcl
+	install -m 755 examples/ExternalUI/ExternalLauncher.tcl bin/d_extui-dssi/d_extui.tcl
+	install -m 755 examples/ExternalUI/ExternalLauncher.tcl bin/d_extui.lv2/d_extui.tcl
 endif
 
 ifneq ($(CROSS_COMPILING),true)

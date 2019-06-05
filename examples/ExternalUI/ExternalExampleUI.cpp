@@ -72,8 +72,15 @@ public:
             fExternalScript.truncate(fExternalScript.rfind('/'));
         }
 
-        fExternalScript += "/d_extui.sh";
+        fExternalScript += "/d_extui.tcl";
         d_stdout("External script = %s", fExternalScript.buffer());
+
+        setupExternalUI();
+    }
+
+    ~ExternalExampleUI()
+    {
+        cleanupExternalUI();
     }
 
 protected:
@@ -95,65 +102,78 @@ protected:
             return;
 
         // NOTE: This is a terrible way to pass values, also locale might get in the way...
-        char valueStr[24];
-        std::memset(valueStr, 0, sizeof(valueStr));
-        std::snprintf(valueStr, 23, "%i\n", static_cast<int>(value + 0.5f));
+        char commandStr[256];
+        std::sprintf(commandStr, "pluginParameterChanged %u %f", index, value);
+        size_t commandSize = std::strlen(commandStr) + 1; // a null-byte terminates
 
-        DISTRHO_SAFE_ASSERT(writeRetry(fFifo, valueStr, 24) == sizeof(valueStr));
+        DISTRHO_SAFE_ASSERT(writeRetry(fFifo, commandStr, commandSize) == commandSize);
     }
 
    /* --------------------------------------------------------------------------------------------------------
     * External Window overrides */
 
    /**
-      Manage external process and IPC when UI is requested to be visible.
+      Set up external process and IPC.
     */
-    void setVisible(const bool yesNo) override
+    void setupExternalUI()
     {
-        if (yesNo)
+        DISTRHO_SAFE_ASSERT_RETURN(fileExists(fExternalScript),);
+
+        mkfifo(kFifoFilename, 0666);
+        sync();
+
+        uintptr_t winId = getNextWindowId();
+        char winIdStr[24] = {};
+        std::snprintf(winIdStr, 23, "%lu", winId);
+
+        char widthStr[24] = {};
+        std::snprintf(widthStr, 23, "%u", getWidth());
+        char heightStr[24] = {};
+        std::snprintf(heightStr, 23, "%u", getHeight());
+
+        const char *argv[32];
+        int argc = 0;
+
+        argv[argc++] = "wish";
+        argv[argc++] = fExternalScript.buffer();
+        if (winId)
         {
-            DISTRHO_SAFE_ASSERT_RETURN(fileExists(fExternalScript),);
-
-            mkfifo(kFifoFilename, 0666);
-            sync();
-
-            char winIdStr[24];
-            std::memset(winIdStr, 0, sizeof(winIdStr));
-            std::snprintf(winIdStr, 23, "%lu", getTransientWinId());
-
-            const char* args[] = {
-                fExternalScript.buffer(),
-                kFifoFilename,
-                "--progressbar", "External UI example",
-                "--title", getTitle(),
-                nullptr,
-            };
-            DISTRHO_SAFE_ASSERT_RETURN(startExternalProcess(args),);
-
-            // NOTE: this can lockup the current thread if the other side does not read the file!
-            fFifo = open(kFifoFilename, O_WRONLY);
-            DISTRHO_SAFE_ASSERT_RETURN(fFifo != -1,);
-
-            parameterChanged(0, fValue);
+            argv[argc++] = "-use";
+            argv[argc++] = winIdStr;
         }
-        else
+        argv[argc++] = "--";
+        argv[argc++] = kFifoFilename;
+        argv[argc++] = widthStr;
+        argv[argc++] = heightStr;
+        argv[argc++] = nullptr;
+
+        DISTRHO_SAFE_ASSERT_RETURN(startExternalProcess(argv),);
+
+        // NOTE: this can lockup the current thread if the other side does not read the file!
+        fFifo = open(kFifoFilename, O_WRONLY);
+        DISTRHO_SAFE_ASSERT_RETURN(fFifo != -1,);
+
+        parameterChanged(0, fValue);
+    }
+
+   /**
+      Clean up external process and IPC.
+    */
+    void cleanupExternalUI()
+    {
+        if (fFifo != -1)
         {
-            if (fFifo != -1)
+            if (isRunning())
             {
-                if (isRunning())
-                {
-                    DISTRHO_SAFE_ASSERT(writeRetry(fFifo, "quit\n", 5) == 5);
-                    fsync(fFifo);
-                }
-                close(fFifo);
-                fFifo = -1;
+                DISTRHO_SAFE_ASSERT(writeRetry(fFifo, "quit\n", 5) == 5);
+                fsync(fFifo);
             }
-
-            unlink(kFifoFilename);
-            terminateAndWaitForProcess();
+            close(fFifo);
+            fFifo = -1;
         }
 
-        UI::setVisible(yesNo);
+        unlink(kFifoFilename);
+        terminateAndWaitForProcess();
     }
 
     // -------------------------------------------------------------------------------------------------------
