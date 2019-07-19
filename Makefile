@@ -14,6 +14,7 @@ dgl:
 	$(MAKE) -C dgl
 
 examples: dgl
+	$(MAKE) all -C examples/FileDialog
 	$(MAKE) all -C examples/Info
 	$(MAKE) all -C examples/Latency
 	$(MAKE) all -C examples/Meters
@@ -54,6 +55,7 @@ clean:
 	$(MAKE) clean -C dgl
 	$(MAKE) clean -C examples/CairoUI
 	$(MAKE) clean -C examples/ExternalUI
+	$(MAKE) clean -C examples/FileDialog
 	$(MAKE) clean -C examples/Info
 	$(MAKE) clean -C examples/Latency
 	$(MAKE) clean -C examples/Meters
