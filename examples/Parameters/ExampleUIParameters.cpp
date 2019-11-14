@@ -15,6 +15,7 @@
  */
 
 #include "DistrhoUI.hpp"
+#include "Window.hpp"
 
 START_NAMESPACE_DISTRHO
 
@@ -102,48 +103,56 @@ protected:
     */
     void onDisplay() override
     {
-        const uint width = getWidth();
-        const uint height = getHeight();
+        const int width = getWidth();
+        const int height = getHeight();
 
-        Rectangle<int> r;
+        cairo_t *cr = getParentWindow().getGraphicsContext().cairo;
 
-        r.setWidth(width/3 - 6);
-        r.setHeight(height/3 - 6);
+        cairo_set_source_rgb(cr, 0.0f, 0.0f, 0.0f);
+        cairo_paint(cr);
+
+        // Rectangle<int> r;
+
+        int rw = width/3 - 6;
+        int rh = height/3 - 6;
 
         // draw left, center and right columns
         for (int i=0; i<3; ++i)
         {
-            r.setX(3 + i*width/3);
+            int rx = 3 + i*width/3;
 
             // top
-            r.setY(3);
+            int ry = 3;
 
             if (fParamGrid[0+i])
-                glColor3f(0.8f, 0.5f, 0.3f);
+                cairo_set_source_rgb(cr, 0.8f, 0.5f, 0.3f);
             else
-                glColor3f(0.3f, 0.5f, 0.8f);
+                cairo_set_source_rgb(cr, 0.3f, 0.5f, 0.8f);
 
-            r.draw();
+            cairo_rectangle(cr, rx, ry, rw, rh);
+            cairo_fill(cr);
 
             // middle
-            r.setY(3 + height/3);
+            ry = 3 + height/3;
 
             if (fParamGrid[3+i])
-                glColor3f(0.8f, 0.5f, 0.3f);
+                cairo_set_source_rgb(cr, 0.8f, 0.5f, 0.3f);
             else
-                glColor3f(0.3f, 0.5f, 0.8f);
+                cairo_set_source_rgb(cr, 0.3f, 0.5f, 0.8f);
 
-            r.draw();
+            cairo_rectangle(cr, rx, ry, rw, rh);
+            cairo_fill(cr);
 
             // bottom
-            r.setY(3 + height*2/3);
+            ry = 3 + height*2/3;
 
             if (fParamGrid[6+i])
-                glColor3f(0.8f, 0.5f, 0.3f);
+                cairo_set_source_rgb(cr, 0.8f, 0.5f, 0.3f);
             else
-                glColor3f(0.3f, 0.5f, 0.8f);
+                cairo_set_source_rgb(cr, 0.3f, 0.5f, 0.8f);
 
-            r.draw();
+            cairo_rectangle(cr, rx, ry, rw, rh);
+            cairo_fill(cr);
         }
     }
 
