@@ -15,6 +15,7 @@
  */
 
 #include "DistrhoUI.hpp"
+#include "Window.hpp"
 
 START_NAMESPACE_DISTRHO
 
@@ -105,45 +106,61 @@ protected:
         const uint width = getWidth();
         const uint height = getHeight();
 
-        Rectangle<int> r;
-
-        r.setWidth(width/3 - 6);
-        r.setHeight(height/3 - 6);
+        Rectangle<int> r[9];
 
         // draw left, center and right columns
+        Rectangle<int> rtmp;
+
+        rtmp.setWidth(width/3 - 6);
+        rtmp.setHeight(height/3 - 6);
+
         for (int i=0; i<3; ++i)
         {
-            r.setX(3 + i*width/3);
+            rtmp.setX(3 + i*width/3);
 
             // top
-            r.setY(3);
+            rtmp.setY(3);
+            r[0+i] = rtmp;
 
+            // middle
+            rtmp.setY(3 + height/3);
+            r[3+i] = rtmp;
+
+            // bottom
+            rtmp.setY(3 + height*2/3);
+            r[6+i] = rtmp;
+        }
+
+#if defined(DGL_CAIRO)
+        cairo_t *cr = getParentWindow().getGraphicsContext().cairo;
+        cairo_set_source_rgb(cr, 0.0f, 0.0f, 0.0f);
+        cairo_paint(cr);
+#endif
+
+        // draw left, center and right columns
+        for (int i=0; i<9; ++i)
+        {
+            int row = i/3;
+            int col = i%3;
+
+            Rectangle<int> r;
+            r.setPos(3 + col*width/3, 3 + row*height/3);
+            r.setSize(width/3 - 6, height/3 - 6);
+
+#if defined(DGL_OPENGL)
             if (fParamGrid[0+i])
                 glColor3f(0.8f, 0.5f, 0.3f);
             else
                 glColor3f(0.3f, 0.5f, 0.8f);
-
             r.draw();
-
-            // middle
-            r.setY(3 + height/3);
-
-            if (fParamGrid[3+i])
-                glColor3f(0.8f, 0.5f, 0.3f);
+#elif defined(DGL_CAIRO)
+            if (fParamGrid[0+i])
+                cairo_set_source_rgb(cr, 0.8f, 0.5f, 0.3f);
             else
-                glColor3f(0.3f, 0.5f, 0.8f);
-
-            r.draw();
-
-            // bottom
-            r.setY(3 + height*2/3);
-
-            if (fParamGrid[6+i])
-                glColor3f(0.8f, 0.5f, 0.3f);
-            else
-                glColor3f(0.3f, 0.5f, 0.8f);
-
-            r.draw();
+                cairo_set_source_rgb(cr, 0.3f, 0.5f, 0.8f);
+            cairo_rectangle(cr, r.getX(), r.getY(), r.getWidth(), r.getHeight());
+            cairo_fill(cr);
+#endif
         }
     }
 

@@ -19,6 +19,7 @@ examples: dgl
 	$(MAKE) all -C examples/Meters
 	$(MAKE) all -C examples/MidiThrough
 	$(MAKE) all -C examples/Parameters
+	$(MAKE) all -C examples/ParametersCairo
 	$(MAKE) all -C examples/States
 
 ifeq ($(HAVE_CAIRO),true)
@@ -58,6 +59,7 @@ clean:
 	$(MAKE) clean -C examples/Meters
 	$(MAKE) clean -C examples/MidiThrough
 	$(MAKE) clean -C examples/Parameters
+	$(MAKE) clean -C examples/ParametersCairo
 	$(MAKE) clean -C examples/States
 	$(MAKE) clean -C utils/lv2-ttl-generator
 ifneq ($(MACOS_OR_WINDOWS),true)
