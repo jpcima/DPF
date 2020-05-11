@@ -2161,7 +2161,7 @@ int nvgCreateFont(NVGcontext* ctx, const char* name, const char* path)
 
 int nvgCreateFontMem(NVGcontext* ctx, const char* name, const unsigned char* data, int ndata, int freeData)
 {
-	return fonsAddFontMem(ctx->fs, name, data, ndata, freeData);
+	return fonsAddFontMem(ctx->fs, name, (unsigned char*)data, ndata, freeData);
 }
 
 int nvgFindFont(NVGcontext* ctx, const char* name)
