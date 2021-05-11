@@ -26,7 +26,7 @@
  * component handler
  */
 
-struct v3_component_handler {
+struct V3_INTERFACE(v3_component_handler) {
 	struct v3_funknown;
 
 	V3_API v3_result (*begin_edit)
@@ -72,7 +72,7 @@ struct v3_param_info {
 	int32_t flags;
 };
 
-struct v3_edit_controller {
+struct V3_INTERFACE(v3_edit_controller) {
 	struct v3_plugin_base;
 
 	V3_API v3_result (*set_component_state)
@@ -111,3 +111,7 @@ static const v3_tuid v3_edit_controller_iid =
 	V3_ID(0xDCD7BBE3, 0x7742448D, 0xA874AACC, 0x979C759E);
 
 #include "align_pop.h"
+
+#ifdef __cplusplus
+#include "gen/edit_controller.hpp"
+#endif

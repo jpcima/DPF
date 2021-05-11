@@ -66,6 +66,15 @@ lv2        = $(TARGET_DIR)/$(NAME).lv2/$(NAME)$(LIB_EXT)
 lv2_dsp    = $(TARGET_DIR)/$(NAME).lv2/$(NAME)_dsp$(LIB_EXT)
 lv2_ui     = $(TARGET_DIR)/$(NAME).lv2/$(NAME)_ui$(LIB_EXT)
 vst        = $(TARGET_DIR)/$(NAME)-vst$(LIB_EXT)
+ifeq ($(WINDOWS),true)
+vst3       = $(TARGET_DIR)/$(NAME).vst3/Contents/$(TARGET_PROCESSOR)-win/$(NAME).vst3
+endif
+ifeq ($(MACOS),true)
+vst3       = $(TARGET_DIR)/$(NAME).vst3/Contents/MacOS/$(NAME).vst3
+endif
+ifneq ($(WINDOWS)$(MACOS),true)
+vst3       = $(TARGET_DIR)/$(NAME).vst3/Contents/$(TARGET_PROCESSOR)-linux/$(NAME).so
+endif
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Handle UI stuff, disable UI support automatically
@@ -250,6 +259,20 @@ endif
 	$(SILENT)$(CXX) $^ $(BUILD_CXX_FLAGS) $(LINK_FLAGS) $(DGL_LIBS) $(SHARED) -o $@
 
 # ---------------------------------------------------------------------------------------------------------------------
+# VST3
+
+vst3: $(vst3)
+
+ifeq ($(HAVE_DGL),true)
+$(vst3): $(OBJS_DSP) $(OBJS_UI) $(BUILD_DIR)/DistrhoPluginMain_VST3.cpp.o $(BUILD_DIR)/DistrhoUIMain_VST3.cpp.o $(DGL_LIB)
+else
+$(vst3): $(OBJS_DSP) $(BUILD_DIR)/DistrhoPluginMain_VST3.cpp.o
+endif
+	-@mkdir -p $(shell dirname $@)
+	@echo "Creating VST3 plugin for $(NAME)"
+	$(SILENT)$(CXX) $^ $(BUILD_CXX_FLAGS) $(LINK_FLAGS) $(DGL_LIBS) $(SHARED) -o $@
+
+# ---------------------------------------------------------------------------------------------------------------------
 
 -include $(OBJS_DSP:%.o=%.d)
 ifneq ($(UI_TYPE),)
@@ -261,10 +284,12 @@ endif
 -include $(BUILD_DIR)/DistrhoPluginMain_DSSI.cpp.d
 -include $(BUILD_DIR)/DistrhoPluginMain_LV2.cpp.d
 -include $(BUILD_DIR)/DistrhoPluginMain_VST.cpp.d
+-include $(BUILD_DIR)/DistrhoPluginMain_VST3.cpp.d
 
 -include $(BUILD_DIR)/DistrhoUIMain_JACK.cpp.d
 -include $(BUILD_DIR)/DistrhoUIMain_DSSI.cpp.d
 -include $(BUILD_DIR)/DistrhoUIMain_LV2.cpp.d
 -include $(BUILD_DIR)/DistrhoUIMain_VST.cpp.d
+-include $(BUILD_DIR)/DistrhoUIMain_VST3.cpp.d
 
 # ---------------------------------------------------------------------------------------------------------------------

@@ -24,7 +24,7 @@ enum v3_seek_mode {
 	V3_SEEK_END
 };
 
-struct v3_bstream {
+struct V3_INTERFACE(v3_bstream) {
 	struct v3_funknown;
 
 	V3_API v3_result (*read)
@@ -39,3 +39,7 @@ struct v3_bstream {
 
 static const v3_tuid v3_bstream_iid =
 	V3_ID(0xC3BF6EA2, 0x30994752, 0x9B6BF990, 0x1EE33E9B);
+
+#ifdef __cplusplus
+#include "gen/bstream.hpp"
+#endif

@@ -79,7 +79,7 @@ struct v3_process_setup {
  * param changes
  */
 
-struct v3_param_value_queue {
+struct V3_INTERFACE(v3_param_value_queue) {
 	struct v3_funknown;
 
 	V3_API v3_param_id (*get_param_id)(void *self);
@@ -94,7 +94,7 @@ struct v3_param_value_queue {
 static const v3_tuid v3_param_value_queue_iid =
 	V3_ID(0x01263A18, 0xED074F6F, 0x98C9D356, 0x4686F9BA);
 
-struct v3_param_changes {
+struct V3_INTERFACE(v3_param_changes) {
 	struct v3_funknown;
 
 	V3_API int32_t (*get_param_count)(void *self);
@@ -191,7 +191,7 @@ enum {
 	V3_PROCESS_CTX_NEED_TRANSPORT_STATE  = 1 << 10
 };
 
-struct v3_process_context_requirements {
+struct V3_INTERFACE(v3_process_context_requirements) {
 	struct v3_funknown;
 
 	V3_API uint32_t (*get_process_context_requirements)(void *self);
@@ -239,7 +239,7 @@ struct v3_process_data {
  * audio processor
  */
 
-struct v3_audio_processor {
+struct V3_INTERFACE(v3_audio_processor) {
 	struct v3_funknown;
 
 	V3_API v3_result (*set_bus_arrangements)
@@ -268,3 +268,7 @@ static const v3_tuid v3_audio_processor_iid =
 	V3_ID(0x42043F99, 0xB7DA453C, 0xA569E79D, 0x9AAEC33D);
 
 #include "align_pop.h"
+
+#ifdef __cplusplus
+#include "gen/audio_processor.hpp"
+#endif

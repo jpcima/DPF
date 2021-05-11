@@ -29,6 +29,7 @@ endif
 
 TARGETS += lv2_dsp
 TARGETS += vst
+TARGETS += vst3
 
 all: $(TARGETS)
 

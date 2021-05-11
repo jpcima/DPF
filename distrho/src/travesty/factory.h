@@ -29,6 +29,13 @@ struct v3_factory_info {
 	int32_t flags;
 };
 
+enum v3_factory_flags {
+	V3_FACTORY_CLASSES_DISCARDABLE = 1,
+	V3_FACTORY_CLASSES_LICENSE_CHECK = 1 << 1,
+	V3_FACTORY_COMPONENT_NOT_DISCARDABLE = 1 << 3,
+	V3_FACTORY_UNICODE = 1 << 4,
+};
+
 struct v3_class_info {
 	v3_tuid class_id;
 	int32_t cardinality; // set to 0x7FFFFFFF
@@ -36,7 +43,7 @@ struct v3_class_info {
 	char name[64];
 };
 
-struct v3_plugin_factory {
+struct V3_INTERFACE(v3_plugin_factory) {
 	struct v3_funknown;
 
 	V3_API v3_result (*get_factory_info)
@@ -71,7 +78,7 @@ struct v3_class_info_2 {
 	char sdk_version[64];
 };
 
-struct v3_plugin_factory_2 {
+struct V3_INTERFACE(v3_plugin_factory_2) {
 	struct v3_plugin_factory;
 
 	V3_API v3_result (*get_class_info_2)
@@ -101,8 +108,8 @@ struct v3_class_info_3 {
 	int16_t sdk_version[64];
 };
 
-struct v3_plugin_factory_3 {
-	struct v3_plugin_factory;
+struct V3_INTERFACE(v3_plugin_factory_3) {
+	struct v3_plugin_factory_2;
 
 	V3_API v3_result (*get_class_info_utf16)
 		(void *self, int32_t idx, struct v3_class_info_3 *);
@@ -113,3 +120,7 @@ struct v3_plugin_factory_3 {
 
 static const v3_tuid v3_plugin_factory_3_iid =
 	V3_ID(0x4555A2AB, 0xC1234E57, 0x9B122910, 0x36878931);
+
+#ifdef __cplusplus
+#include "gen/factory.hpp"
+#endif

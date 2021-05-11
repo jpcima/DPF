@@ -100,33 +100,38 @@ enum {
 };
 
 # define V3_ID(a, b, c, d) {												\
-	((a) & 0xFF000000) >> 24,												\
-	((a) & 0x00FF0000) >> 16,												\
-	((a) & 0x0000FF00) >>  8,												\
-	((a) & 0x000000FF),														\
+	(uint8_t)(((a) & 0xFF000000) >> 24),									\
+	(uint8_t)(((a) & 0x00FF0000) >> 16),									\
+	(uint8_t)(((a) & 0x0000FF00) >>  8),									\
+	(uint8_t)(((a) & 0x000000FF)),											\
 																			\
-	((b) & 0xFF000000) >> 24,												\
-	((b) & 0x00FF0000) >> 16,												\
-	((b) & 0x0000FF00) >>  8,												\
-	((b) & 0x000000FF),														\
+	(uint8_t)(((b) & 0xFF000000) >> 24),									\
+	(uint8_t)(((b) & 0x00FF0000) >> 16),									\
+	(uint8_t)(((b) & 0x0000FF00) >>  8),									\
+	(uint8_t)(((b) & 0x000000FF)),											\
 																			\
-	((c) & 0xFF000000) >> 24,												\
-	((c) & 0x00FF0000) >> 16,												\
-	((c) & 0x0000FF00) >>  8,												\
-	((c) & 0x000000FF),														\
+	(uint8_t)(((c) & 0xFF000000) >> 24),									\
+	(uint8_t)(((c) & 0x00FF0000) >> 16),									\
+	(uint8_t)(((c) & 0x0000FF00) >>  8),									\
+	(uint8_t)(((c) & 0x000000FF)),											\
 																			\
-	((d) & 0xFF000000) >> 24,												\
-	((d) & 0x00FF0000) >> 16,												\
-	((d) & 0x0000FF00) >>  8,												\
-	((d) & 0x000000FF),														\
+	(uint8_t)(((d) & 0xFF000000) >> 24),									\
+	(uint8_t)(((d) & 0x00FF0000) >> 16),									\
+	(uint8_t)(((d) & 0x0000FF00) >>  8),									\
+	(uint8_t)(((d) & 0x000000FF))											\
 }
 #endif // V3_COM_COMPAT
+
+/*
+ * marker for V3 pluginterfaces
+ */
+#define V3_INTERFACE(x) x
 
 /**
  * funknown
  */
 
-struct v3_funknown {
+struct V3_INTERFACE(v3_funknown) {
 	V3_API v3_result (*query_interface)
 		(void *self, const v3_tuid iid, void **obj);
 
@@ -141,7 +146,7 @@ static const v3_tuid v3_funknown_iid =
  * plugin base
  */
 
-struct v3_plugin_base {
+struct V3_INTERFACE(v3_plugin_base) {
 	struct v3_funknown;
 
 	V3_API v3_result (*initialise)
@@ -151,3 +156,62 @@ struct v3_plugin_base {
 
 static const v3_tuid v3_plugin_base_iid =
 	V3_ID(0x22888DDB, 0x156E45AE, 0x8358B348, 0x08190625);
+
+/*
+ * implementation helpers for C++ interfaces
+ */
+#ifdef __cplusplus
+#define V3_DEFINE_INTERFACES \
+	virtual V3_API v3_result queryInterface(const v3_tuid iid, void **obj) override \
+	{
+#define V3_DEF_INTERFACE(Interface)					\
+	if (Interface::iid == iid) {						\
+		*obj = static_cast<Interface *>(this);			\
+		return V3_OK;									\
+	}
+#define V3_END_DEFINE_INTERFACES(Class) \
+		return Class::queryInterface(iid, obj);		\
+	}
+#endif
+
+#ifdef __cplusplus
+namespace v3 {
+
+struct fuid {
+	fuid() noexcept
+	{
+		memset(data, 0, sizeof(v3_tuid));
+	}
+	explicit fuid(uint32_t a, uint32_t b, uint32_t c, uint32_t d) noexcept
+		: data V3_ID(a, b, c, d)
+	{
+	}
+	explicit fuid(const v3_tuid tuid) noexcept
+	{
+		memcpy(data, tuid, sizeof(v3_tuid));
+	}
+	bool operator==(const v3_tuid other) const noexcept
+	{
+		return v3_tuid_match(other, data);
+	}
+	bool operator!=(const v3_tuid other) const noexcept
+	{
+		return !operator==(other);
+	}
+	bool operator==(const fuid other) const noexcept
+	{
+		return v3_tuid_match(other.data, data);
+	}
+	bool operator!=(const fuid other) const noexcept
+	{
+		return !operator==(other);
+	}
+	v3_tuid data;
+};
+
+} // namespace v3
+#endif
+
+#ifdef __cplusplus
+#include "gen/base.hpp"
+#endif

@@ -43,7 +43,7 @@ struct v3_view_rect {
 
 struct v3_plug_frame;
 
-struct v3_plug_view {
+struct V3_INTERFACE(v3_plug_view) {
 	struct v3_funknown;
 
 	V3_API v3_result (*is_platform_type_supported)
@@ -77,7 +77,7 @@ struct v3_plug_view {
 static const v3_tuid v3_plug_view_iid =
 	V3_ID(0x5BC32507, 0xD06049EA, 0xA6151B52, 0x2B755B29);
 
-struct v3_plug_frame {
+struct V3_INTERFACE(v3_plug_frame) {
 	struct v3_funknown;
 
 	V3_API v3_result (*resize_view)
@@ -92,7 +92,7 @@ static const v3_tuid v3_plug_frame_iid =
  * (same IID/iface as presonus view scaling)
  */
 
-struct v3_plug_view_content_scale_steinberg {
+struct V3_INTERFACE(v3_plug_view_content_scale_steinberg) {
 	struct v3_funknown;
 
 	V3_API v3_result (*set_content_scale_factor)
@@ -106,7 +106,7 @@ static const v3_tuid v3_plug_view_content_scale_steinberg_iid =
  * support for querying the view to find what control is underneath the mouse
  */
 
-struct v3_plug_view_param_finder {
+struct V3_INTERFACE(v3_plug_view_param_finder) {
 	struct v3_funknown;
 
 	V3_API v3_result (*find_parameter)
@@ -115,3 +115,7 @@ struct v3_plug_view_param_finder {
 
 static const v3_tuid v3_plug_view_param_finder_iid =
 	V3_ID(0x0F618302, 0x215D4587, 0xA512073C, 0x77B9D383);
+
+#ifdef __cplusplus
+#include "gen/view.hpp"
+#endif

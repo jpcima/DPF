@@ -148,7 +148,7 @@ struct v3_event {
  * event list
  */
 
-struct v3_event_list {
+struct V3_INTERFACE(v3_event_list) {
 	struct v3_funknown;
 
 	V3_API uint32_t (*get_event_count)(void *self);
@@ -162,3 +162,7 @@ static const v3_tuid v3_event_list_iid =
 	V3_ID(0x3A2C4214, 0x346349FE, 0xB2C4F397, 0xB9695A44);
 
 #include "align_pop.h"
+
+#ifdef __cplusplus
+#include "gen/events.hpp"
+#endif

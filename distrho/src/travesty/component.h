@@ -81,7 +81,7 @@ struct v3_bus_info {
 
 struct v3_routing_info;
 
-struct v3_component {
+struct V3_INTERFACE(v3_component) {
 	struct v3_plugin_base;
 
 	V3_API v3_result (*get_controller_class_id)
@@ -115,3 +115,7 @@ static const v3_tuid v3_component_iid =
 	V3_ID(0xE831FF31, 0xF2D54301, 0x928EBBEE, 0x25697802);
 
 #include "align_pop.h"
+
+#ifdef __cplusplus
+#include "gen/component.hpp"
+#endif
