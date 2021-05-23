@@ -24,12 +24,16 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(DPF-plugin)
 
 if(DPF_LIBRARIES)
-  dpf__add_dgl_cairo()
+  if(NOT MSVC) # TODO: fix this one later
+    dpf__add_dgl_cairo()
+  endif()
   dpf__add_dgl_opengl()
 endif()
 
 if(DPF_EXAMPLES)
-  add_subdirectory("examples/CairoUI")
+  if(NOT MSVC) # TODO: fix this one later
+    add_subdirectory("examples/CairoUI")
+  endif()
   #add_subdirectory("examples/ExternalUI")
   add_subdirectory("examples/FileHandling")
   add_subdirectory("examples/Info")
